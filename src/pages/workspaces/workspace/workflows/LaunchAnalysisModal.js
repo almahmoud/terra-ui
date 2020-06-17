@@ -118,56 +118,42 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     } else if (type === processAll) {
       this.setState({ message: 'Fetching data...' })
       const allEntities = _.map('name', await Workspaces.workspace(namespace, name).entitiesOfType(rootEntityType))
-      this.createSetAndLaunch(allEntities)
+      this.createSetAndLaunch(allEntities, type)
     } else if (type === chooseRows || type === chooseSets) {
       if (entities.length === 1) {
         this.launch(rootEntityType, entities[0])
       } else {
-        this.createSetAndLaunch(entities)
+        this.createSetAndLaunch(entities, type)
       }
     } else if (type === processMergedSet) {
-      this.createSetAndLaunch(entities)
+      this.createSetAndLaunch(entities, type)
     } else if (type === chooseSetComponents) {
-      this.createSetAndLaunchOne(entities)
+      this.createSetAndLaunch(entities, type)
     } else if (type === processAllAsSet) {
       const baseEntityType = rootEntityType.slice(0, -4)
       const allBaseEntities = _.map('name', await Workspaces.workspace(namespace, name).entitiesOfType(baseEntityType))
-      this.createSetAndLaunchOne(allBaseEntities)
+      this.createSetAndLaunch(allBaseEntities, type)
     }
   }
 
-  async createSetAndLaunch(entities) {
+  async createSetAndLaunch(entities, type) {
     const {
       workspaceId,
       entitySelectionModel: { newSetName },
       config: { rootEntityType }
     } = this.props
 
+    //type of chooseSetComponents and processAllAsSet indicate launching only once
+    const updatedRootEntityType = type === chooseSetComponents || type === processAllAsSet ? rootEntityType.slice(0, -4) : rootEntityType
+
     try {
-      await createEntitySet({ entities, rootEntityType, newSetName, workspaceId })
+      await createEntitySet({ entities, rootEntityType: updatedRootEntityType, newSetName, workspaceId })
     } catch (error) {
       this.setState({ launchError: await error.text(), message: undefined })
       return
     }
 
-    await this.launch(`${rootEntityType}_set`, newSetName, `this.${rootEntityType}s`)
-  }
-
-  async createSetAndLaunchOne(entities) {
-    const {
-      workspaceId,
-      entitySelectionModel: { newSetName },
-      config: { rootEntityType }
-    } = this.props
-
-    try {
-      await createEntitySet({ entities, rootEntityType: rootEntityType.slice(0, -4), newSetName, workspaceId })
-    } catch (error) {
-      this.setState({ launchError: await error.text(), message: undefined })
-      return
-    }
-
-    await this.launch(rootEntityType, newSetName)
+    await this.launch(`${updatedRootEntityType}_set`, newSetName, `this.${updatedRootEntityType}s`)
   }
 
   baseLaunch(entityType, entityName, expression) {
