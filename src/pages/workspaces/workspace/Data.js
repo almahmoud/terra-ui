@@ -3,6 +3,7 @@ import FileSaver from 'file-saver'
 import filesize from 'filesize'
 import JSZip from 'jszip'
 import _ from 'lodash/fp'
+import PropTypes from 'prop-types'
 import * as qs from 'qs'
 import { Component, createRef, Fragment, useEffect, useState } from 'react'
 import { div, form, h, img, input } from 'react-hyperscript-helpers'
@@ -557,6 +558,10 @@ const ToolDrawer = _.flow(
 })
 
 class EntitiesContent extends Component {
+  static propTypes = {
+    onDismiss: PropTypes.func.isRequired
+  }
+
   constructor(props) {
     super(props)
     this.state = {
@@ -572,7 +577,7 @@ class EntitiesContent extends Component {
   }
 
   renderDownloadButton(columnSettings) {
-    const { workspace: { workspace: { namespace, name } }, entityKey } = this.props
+    const { onDismiss, workspace: { workspace: { namespace, name } }, entityKey } = this.props
     const disabled = entityKey.endsWith('_set_set')
     return h(Fragment, [
       form({
@@ -589,7 +594,21 @@ class EntitiesContent extends Component {
         tooltip: disabled ?
           'Downloading sets of sets as TSV is not supported at this time' :
           `Download a .tsv file containing all the ${entityKey}s in this table`,
-        onClick: () => this.downloadForm.current.submit()
+        onClick: () => {
+          h(Modal, {
+            title: 'Policy Reminder',
+            showCancel: true,
+            onDismiss,
+            okButton: h(ButtonPrimary, {
+              onClick: () => this.downloadForm.current.submit()
+            }, 'Download')
+          }, [
+            div({ style: { color: colors.warning() } }, [
+              icon('error-standard', { size: 16, style: { marginRight: '0.5rem' } }),
+              'This is the modal text.'
+            ])
+          ])
+        }
       }, [
         icon('download', { style: { marginRight: '0.5rem' } }),
         'Download all Rows'
@@ -1092,6 +1111,7 @@ const WorkspaceData = _.flow(
             ['entities', () => h(EntitiesContent, {
               key: refreshKey,
               workspace,
+              onDismiss: () => {},
               entityMetadata,
               entityKey: selectedDataType,
               loadMetadata: () => this.loadMetadata(),
