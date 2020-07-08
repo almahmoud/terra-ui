@@ -681,12 +681,12 @@ class EntitiesContent extends Component {
           tooltip: disabled ?
             'Downloading sets of sets as TSV is not supported at this time' :
             `Download the selected data as a file`,
-          onClick: async () => {
+          onClick: () => this.runWithPolicyConfirmation(async () => {
             const tsv = this.buildTSV(columnSettings, selectedEntities)
             isSet ?
               FileSaver.saveAs(await tsv, `${entityKey}.zip`) :
               FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
-          }
+          })
         }, ['Download as TSV']),
         h(MenuButton, {
           tooltip: 'Open the selected data to work with it',
