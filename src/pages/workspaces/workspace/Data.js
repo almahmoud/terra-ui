@@ -612,6 +612,7 @@ class EntitiesContent extends Component {
       (resolve, reject) => {
         this.setState({ showPolicyReminder: true, onConfirmPolicyReminder: resolve, onDismissPolicyReminder: reject })
       })
+    // TODO- need to handle uncaught promise handling
     f()
   }
 
