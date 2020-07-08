@@ -448,9 +448,11 @@ const ToolDrawer = _.flow(
   const origDataExplorerUrl = dataExplorerButtonEnabled ? _.values(selectedEntities)[0].attributes.data_explorer_url : undefined
   const [baseURL, urlSearch] = origDataExplorerUrl ? origDataExplorerUrl.split('?') : []
   const dataExplorerUrl = origDataExplorerUrl && `${baseURL}?${qs.stringify({ ...qs.parse(urlSearch), wid: workspaceId })}`
-  const openDataExplorerInSameTab = dataExplorerUrl && (dataExplorerUrl.includes('terra.bio') || _.some({ origin: new URL(dataExplorerUrl).origin }, datasets))
+  const openDataExplorerInSameTab = dataExplorerUrl &&
+    (dataExplorerUrl.includes('terra.bio') || _.some({ origin: new URL(dataExplorerUrl).origin }, datasets))
   const dataset = openDataExplorerInSameTab && getDataset(dataExplorerUrl)
-  const linkBase = openDataExplorerInSameTab && Nav.getLink(dataset.authDomain ? 'data-explorer-private' : 'data-explorer-public', { dataset: dataset.name })
+  const linkBase = openDataExplorerInSameTab &&
+    Nav.getLink(dataset.authDomain ? 'data-explorer-private' : 'data-explorer-public', { dataset: dataset.name })
   const dataExplorerPath = openDataExplorerInSameTab && `${linkBase}?${dataExplorerUrl.split('?')[1]}`
 
   const notebookButtonEnabled = isCohort && entitiesCount === 1
@@ -509,7 +511,8 @@ const ToolDrawer = _.flow(
               ...(!openDataExplorerInSameTab ? Utils.newTabLinkProps : {}),
               disabled: !dataExplorerButtonEnabled,
               tooltip: Utils.cond(
-                [!entityMetadata.cohort, () => 'Talk to your dataset owner about setting up a Data Explorer. See the "Making custom cohorts with Data Explorer" help article.'],
+                [!entityMetadata.cohort,
+                  () => 'Talk to your dataset owner about setting up a Data Explorer. See the "Making custom cohorts with Data Explorer" help article.'],
                 [isCohort && entitiesCount > 1, () => 'Select exactly one cohort to open in Data Explorer'],
                 [isCohort && !dataExplorerUrl, () => 'Cohort is too old, please recreate in Data Explorer and save to Terra again'],
                 [!isCohort, () => 'Only cohorts can be opened with Data Explorer']
@@ -521,7 +524,8 @@ const ToolDrawer = _.flow(
               onClick: () => setToolMode('Notebook'),
               disabled: !notebookButtonEnabled,
               tooltip: Utils.cond(
-                [!entityMetadata.cohort, () => 'Unable to open with notebooks. See the "Making custom cohorts with Data Explorer" help article for more details.'],
+                [!entityMetadata.cohort,
+                  () => 'Unable to open with notebooks. See the "Making custom cohorts with Data Explorer" help article for more details.'],
                 [isCohort && entitiesCount > 1, () => 'Select exactly one cohort to open in notebook'],
                 [!isCohort, () => 'Only cohorts can be opened with notebooks'],
                 [notebookButtonEnabled, () => 'Create a Python 2 or 3 notebook with this cohort']
@@ -571,13 +575,48 @@ class EntitiesContent extends Component {
       igvData: {
         selectedFiles: undefined,
         igvRefGenome: ''
-      }
+      },
+      showPolicyReminder: false,
+      onDismissPolicyReminder: undefined,
+      onConfirmPolicyReminder: undefined
     }
     this.downloadForm = createRef()
   }
 
+  renderPolicyReminderModal() {
+    const closeModal = () => this.setState({ showPolicyReminder: false })
+
+    return this.state.showPolicyReminder && h(Modal, {
+      title: 'Policy Reminder',
+      showCancel: true,
+      onDismiss: () => {
+        this.state.onDismissPolicyReminder()
+        closeModal()
+      },
+      okButton: h(ButtonPrimary, {
+        onClick: () => {
+          this.state.onConfirmPolicyReminder()
+          closeModal()
+        }
+      }, 'Download')
+    }, [
+      div({ style: { color: colors.warning() } }, [
+        icon('error-standard', { size: 16, style: { marginRight: '0.5rem' } }),
+        'This is the modal text.'
+      ])
+    ])
+  }
+
+  async runWithPolicyConfirmation(f) {
+    await new Promise(
+      (resolve, reject) => {
+        this.setState({ showPolicyReminder: true, onConfirmPolicyReminder: resolve, onDismissPolicyReminder: reject })
+      })
+    f()
+  }
+
   renderDownloadButton(columnSettings) {
-    const { onDismiss, workspace: { workspace: { namespace, name } }, entityKey } = this.props
+    const { workspace: { workspace: { namespace, name } }, entityKey } = this.props
     const disabled = entityKey.endsWith('_set_set')
     return h(Fragment, [
       form({
@@ -594,21 +633,7 @@ class EntitiesContent extends Component {
         tooltip: disabled ?
           'Downloading sets of sets as TSV is not supported at this time' :
           `Download a .tsv file containing all the ${entityKey}s in this table`,
-        onClick: () => {
-          h(Modal, {
-            title: 'Policy Reminder',
-            showCancel: true,
-            onDismiss,
-            okButton: h(ButtonPrimary, {
-              onClick: () => this.downloadForm.current.submit()
-            }, 'Download')
-          }, [
-            div({ style: { color: colors.warning() } }, [
-              icon('error-standard', { size: 16, style: { marginRight: '0.5rem' } }),
-              'This is the modal text.'
-            ])
-          ])
-        }
+        onClick: () => this.runWithPolicyConfirmation(() => this.downloadForm.current.submit())
       }, [
         icon('download', { style: { marginRight: '0.5rem' } }),
         'Download all Rows'
@@ -748,7 +773,8 @@ class EntitiesContent extends Component {
             !_.endsWith('_set', entityKey) && this.renderCopyButton(entities, columnSettings),
             div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
             div({ style: { marginRight: '0.5rem' } }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
-            this.renderSelectedRowsMenu(columnSettings)
+            this.renderSelectedRowsMenu(columnSettings),
+            this.renderPolicyReminderModal()
           ])
         }),
         deletingEntities && h(EntityDeleter, {
