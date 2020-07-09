@@ -1,41 +1,20 @@
-import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import colors from 'src/libs/colors'
 
-
-const PolicyReminder = () => {
-  const { modalVisible, setModalVisible } = useState(false)
-}
-
-const PolicyReminderModal = ({ closeModal, action }) => {
-  const { onConfirmPolicyReminder, setOnConfirmPolicyReminder } = useState()
-  const { onDismissPolicyReminder, setOnDismissPolicyReminder } = useState()
-
-  const promise = new Promise(
-    (resolve, reject) => {
-      setOnConfirmPolicyReminder(() => {
-        resolve()
-        action()
-      })
-      setOnDismissPolicyReminder(reject)
-    }).catch(() => {})
-  console.log(promise)
-
+const PolicyReminderModal = ({ onDismiss, onSuccess, href }) => {
   return h(Modal, {
     title: 'Policy Reminder',
     showCancel: true,
-    onDismiss: () => {
-      onDismissPolicyReminder()
-      closeModal()
-    },
+    onDismiss,
     okButton: h(ButtonPrimary, {
-      onClick: () => {
-        onConfirmPolicyReminder()
-        closeModal()
-      }
+      onClick: !!onSuccess ? () => {
+        onSuccess()
+        onDismiss()
+      } : undefined,
+      href
     }, 'Download')
   }, [
     div({ style: { color: colors.warning() } }, [

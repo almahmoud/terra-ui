@@ -578,51 +578,14 @@ class EntitiesContent extends Component {
         igvRefGenome: ''
       },
       showPolicyReminder: false,
-      // onDismissPolicyReminder: undefined,
-      // onConfirmPolicyReminder: undefined,
-      restrictedPolicyAction: undefined
+      restrictedPolicyAction: undefined,
+      restrictedPolicyLink: undefined
     }
     this.downloadForm = createRef()
   }
 
-  renderPolicyReminderModal() {
-    const closeModal = () => this.setState({ showPolicyReminder: false })
-
-    return this.state.showPolicyReminder && h(Modal, {
-      title: 'Policy Reminder',
-      showCancel: true,
-      onDismiss: () => {
-        this.state.onDismissPolicyReminder()
-        closeModal()
-      },
-      okButton: h(ButtonPrimary, {
-        onClick: () => {
-          this.state.onConfirmPolicyReminder()
-          closeModal()
-        }
-      }, 'Download')
-    }, [
-      div({ style: { color: colors.warning() } }, [
-        icon('error-standard', { size: 16, style: { marginRight: '0.5rem' } }),
-        'This is the modal text.'
-      ])
-    ])
-  }
-
-  async runWithPolicyConfirmation(f) {
-    await new Promise(
-      (resolve, reject) => {
-        this.setState({
-          showPolicyReminder: true, onConfirmPolicyReminder: () => {
-            resolve()
-            f()
-          }, onDismissPolicyReminder: reject
-        })
-      }).catch(() => {})
-  }
-
-  runWithPolicyConfirmationV2(f) {
-    this.setState({ showPolicyReminder: true, restrictedPolicyAction: f })
+  runWithPolicyConfirmation({ onClick, href }) {
+    this.setState({ showPolicyReminder: true, restrictedPolicyAction: onClick, restrictedPolicyLink: href })
   }
 
   renderDownloadButton(columnSettings) {
@@ -643,7 +606,7 @@ class EntitiesContent extends Component {
         tooltip: disabled ?
           'Downloading sets of sets as TSV is not supported at this time' :
           `Download a .tsv file containing all the ${entityKey}s in this table`,
-        onClick: () => this.runWithPolicyConfirmationV2(() => this.downloadForm.current.submit())
+        onClick: () => this.runWithPolicyConfirmation({ onClick: () => this.downloadForm.current.submit() })
       }, [
         icon('download', { style: { marginRight: '0.5rem' } }),
         'Download all Rows'
@@ -691,11 +654,13 @@ class EntitiesContent extends Component {
           tooltip: disabled ?
             'Downloading sets of sets as TSV is not supported at this time' :
             `Download the selected data as a file`,
-          onClick: () => this.runWithPolicyConfirmation(async () => {
-            const tsv = this.buildTSV(columnSettings, selectedEntities)
-            isSet ?
-              FileSaver.saveAs(await tsv, `${entityKey}.zip`) :
-              FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
+          onClick: () => this.runWithPolicyConfirmation({
+            onClick: async () => {
+              const tsv = this.buildTSV(columnSettings, selectedEntities)
+              isSet ?
+                FileSaver.saveAs(await tsv, `${entityKey}.zip`) :
+                FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
+            }
           })
         }, ['Download as TSV']),
         h(MenuButton, {
@@ -784,10 +749,9 @@ class EntitiesContent extends Component {
             div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
             div({ style: { marginRight: '0.5rem' } }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
             this.renderSelectedRowsMenu(columnSettings),
-            this.renderPolicyReminderModal(),
             this.state.showPolicyReminder && h(PolicyReminderModal, {
-              closeModal: () => this.setState({ showPolicyReminder: false }),
-              action: this.state.restrictedPolicyAction
+              onDismiss: () => this.setState({ showPolicyReminder: false }),
+              onSuccess: this.state.restrictedPolicyAction
             })
           ])
         }),
