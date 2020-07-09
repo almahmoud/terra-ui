@@ -22,6 +22,7 @@ import { DelayedSearchInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { cohortNotebook, cohortRNotebook, NotebookCreator } from 'src/components/notebook-utils'
+import { PolicyReminderModal } from 'src/components/PolicyReminderModal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import TitleBar from 'src/components/TitleBar'
@@ -577,8 +578,9 @@ class EntitiesContent extends Component {
         igvRefGenome: ''
       },
       showPolicyReminder: false,
-      onDismissPolicyReminder: undefined,
-      onConfirmPolicyReminder: undefined
+      // onDismissPolicyReminder: undefined,
+      // onConfirmPolicyReminder: undefined,
+      restrictedPolicyAction: undefined
     }
     this.downloadForm = createRef()
   }
@@ -619,6 +621,10 @@ class EntitiesContent extends Component {
       }).catch(() => {})
   }
 
+  runWithPolicyConfirmationV2(f) {
+    this.setState({ showPolicyReminder: true, restrictedPolicyAction: f })
+  }
+
   renderDownloadButton(columnSettings) {
     const { workspace: { workspace: { namespace, name } }, entityKey } = this.props
     const disabled = entityKey.endsWith('_set_set')
@@ -637,7 +643,7 @@ class EntitiesContent extends Component {
         tooltip: disabled ?
           'Downloading sets of sets as TSV is not supported at this time' :
           `Download a .tsv file containing all the ${entityKey}s in this table`,
-        onClick: () => this.runWithPolicyConfirmation(() => this.downloadForm.current.submit())
+        onClick: () => this.runWithPolicyConfirmationV2(() => this.downloadForm.current.submit())
       }, [
         icon('download', { style: { marginRight: '0.5rem' } }),
         'Download all Rows'
@@ -778,7 +784,11 @@ class EntitiesContent extends Component {
             div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
             div({ style: { marginRight: '0.5rem' } }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
             this.renderSelectedRowsMenu(columnSettings),
-            this.renderPolicyReminderModal()
+            this.renderPolicyReminderModal(),
+            this.state.showPolicyReminder && h(PolicyReminderModal, {
+              closeModal: () => this.setState({ showPolicyReminder: false }),
+              action: this.state.restrictedPolicyAction
+            })
           ])
         }),
         deletingEntities && h(EntityDeleter, {
