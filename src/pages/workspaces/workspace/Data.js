@@ -610,10 +610,13 @@ class EntitiesContent extends Component {
   async runWithPolicyConfirmation(f) {
     await new Promise(
       (resolve, reject) => {
-        this.setState({ showPolicyReminder: true, onConfirmPolicyReminder: resolve, onDismissPolicyReminder: reject })
-      })
-    // TODO- need to handle uncaught promise handling
-    f()
+        this.setState({
+          showPolicyReminder: true, onConfirmPolicyReminder: () => {
+            resolve()
+            f()
+          }, onDismissPolicyReminder: reject
+        })
+      }).catch(() => {})
   }
 
   renderDownloadButton(columnSettings) {
