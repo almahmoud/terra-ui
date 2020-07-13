@@ -36,7 +36,7 @@ import wdlLogo from 'src/images/wdl-logo.png'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
+import { getConfig, isBioDataCatalyst } from 'src/libs/config'
 import { EntityDeleter, EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -584,7 +584,7 @@ class EntitiesContent extends Component {
   }
 
   runWithPolicyConfirmation(onClick) {
-    this.setState({ showPolicyReminder: true, restrictedPolicyAction: onClick })
+    isBioDataCatalyst() ? this.setState({ showPolicyReminder: true, restrictedPolicyAction: onClick }): onClick()
   }
 
   renderDownloadButton(columnSettings) {
