@@ -578,14 +578,13 @@ class EntitiesContent extends Component {
         igvRefGenome: ''
       },
       showPolicyReminder: false,
-      restrictedPolicyAction: undefined,
-      restrictedPolicyLink: undefined
+      restrictedPolicyAction: undefined
     }
     this.downloadForm = createRef()
   }
 
-  runWithPolicyConfirmation({ onClick, href }) {
-    this.setState({ showPolicyReminder: true, restrictedPolicyAction: onClick, restrictedPolicyLink: href })
+  runWithPolicyConfirmation(onClick) {
+    this.setState({ showPolicyReminder: true, restrictedPolicyAction: onClick })
   }
 
   renderDownloadButton(columnSettings) {
@@ -606,7 +605,7 @@ class EntitiesContent extends Component {
         tooltip: disabled ?
           'Downloading sets of sets as TSV is not supported at this time' :
           `Download a .tsv file containing all the ${entityKey}s in this table`,
-        onClick: () => this.runWithPolicyConfirmation({ onClick: () => this.downloadForm.current.submit() })
+        onClick: () => this.runWithPolicyConfirmation(() => this.downloadForm.current.submit())
       }, [
         icon('download', { style: { marginRight: '0.5rem' } }),
         'Download all Rows'
@@ -654,13 +653,11 @@ class EntitiesContent extends Component {
           tooltip: disabled ?
             'Downloading sets of sets as TSV is not supported at this time' :
             `Download the selected data as a file`,
-          onClick: () => this.runWithPolicyConfirmation({
-            onClick: async () => {
-              const tsv = this.buildTSV(columnSettings, selectedEntities)
-              isSet ?
-                FileSaver.saveAs(await tsv, `${entityKey}.zip`) :
-                FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
-            }
+          onClick: () => this.runWithPolicyConfirmation(async () => {
+            const tsv = this.buildTSV(columnSettings, selectedEntities)
+            isSet ?
+              FileSaver.saveAs(await tsv, `${entityKey}.zip`) :
+              FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
           })
         }, ['Download as TSV']),
         h(MenuButton, {

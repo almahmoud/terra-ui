@@ -4,17 +4,17 @@ import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import colors from 'src/libs/colors'
 
-const PolicyReminderModal = ({ onDismiss, onSuccess, href }) => {
+
+const PolicyReminderModal = ({ onDismiss, onSuccess }) => {
   return h(Modal, {
     title: 'Policy Reminder',
     showCancel: true,
     onDismiss,
     okButton: h(ButtonPrimary, {
-      onClick: !!onSuccess ? () => {
+      onClick: () => {
         onSuccess()
         onDismiss()
-      } : undefined,
-      href
+      }
     }, 'Download')
   }, [
     div({ style: { color: colors.warning() } }, [
