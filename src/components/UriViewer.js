@@ -8,10 +8,12 @@ import Collapse from 'src/components/Collapse'
 import { ButtonPrimary, Clickable, Link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import { bioDataCatalystPolicyReminder } from 'src/components/PolicyReminderModal'
 import DownloadPrices from 'src/data/download-prices'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { isBioDataCatalyst } from 'src/libs/config'
 import { getUserProjectForWorkspace, parseGsUri } from 'src/libs/data-utils'
 import { withErrorReporting } from 'src/libs/error'
 import { knownBucketRequesterPaysStatuses, workspaceStore } from 'src/libs/state'
@@ -123,6 +125,7 @@ const DownloadButton = ({ uri, metadata: { bucket, name, size } }) => {
         h(ButtonPrimary, {
           disabled: !url,
           href: url,
+          tooltip: isBioDataCatalyst() ? bioDataCatalystPolicyReminder : undefined,
           ...Utils.newTabLinkProps
         }, [
           url ?
@@ -199,6 +202,8 @@ const UriViewer = _.flow(
           }, ['View this file in the Google Cloud Storage Browser'])
         ]),
         h(DownloadButton, { uri, metadata }),
+        // TODO: decide whether or not to display this here
+        // isBioDataCatalyst() && els.cell([bioDataCatalystPolicyReminder]),
         els.cell([
           els.label('Terminal download command'),
           els.data([

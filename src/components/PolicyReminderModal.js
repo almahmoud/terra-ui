@@ -26,4 +26,4 @@ const PolicyReminderModal = ({ onDismiss, onSuccess }) => {
   ])
 }
 
-export { PolicyReminderModal }
+export { PolicyReminderModal, bioDataCatalystPolicyReminder }
