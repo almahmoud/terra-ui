@@ -728,25 +728,25 @@ const WorkflowView = _.flow(
             ])
           ]),
           div({ style: { marginTop: '1rem' } }, [
-            h(LabeledCheckbox, {
-              disabled: currentSnapRedacted || !!Utils.computeWorkspaceError(ws),
-              checked: useCallCache,
-              onChange: v => this.setState({ useCallCache: v })
-            }, [' Use call caching']),
-            span({ style: { margin: '0 0.5rem 0 1rem' } }, [
-              h(LabeledCheckbox, {
-                checked: deleteIntermediateOutputFiles,
-                onChange: v => this.setState({ deleteIntermediateOutputFiles: v }),
-                style: { marginLeft: '1rem' }
-              }, [' Delete intermediate outputs'])
-            ]),
-            h(InfoBox, [
-              'If the workflow succeeds, only the final output will be saved. Subsequently, call caching cannot be used as the intermediate steps will be not available. ',
-              h(Link, {
-                href: 'https://support.terra.bio/hc/en-us/articles/360039681632',
-                ...Utils.newTabLinkProps
-              }, ['Click here to learn more.'])
-            ])
+            // h(LabeledCheckbox, {
+            //   disabled: currentSnapRedacted || !!Utils.computeWorkspaceError(ws),
+            //   checked: useCallCache,
+            //   onChange: v => this.setState({ useCallCache: v })
+            // }, [' Use call caching']),
+            // span({ style: { margin: '0 0.5rem 0 1rem' } }, [
+            //   h(LabeledCheckbox, {
+            //     checked: deleteIntermediateOutputFiles,
+            //     onChange: v => this.setState({ deleteIntermediateOutputFiles: v }),
+            //     style: { marginLeft: '1rem' }
+            //   }, [' Delete intermediate outputs'])
+            // ]),
+            // h(InfoBox, [
+            //   'If the workflow succeeds, only the final output will be saved. Subsequently, call caching cannot be used as the intermediate steps will be not available. ',
+            //   h(Link, {
+            //     href: 'https://support.terra.bio/hc/en-us/articles/360039681632',
+            //     ...Utils.newTabLinkProps
+            //   }, ['Click here to learn more.'])
+            // ])
           ]),
           h(StepButtons, {
             tabs: [
@@ -761,7 +761,7 @@ const WorkflowView = _.flow(
               disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted,
               tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
               onClick: () => this.setState({ launching: true })
-            }, ['Run analysis'])
+            }, ['Run analysis...'])
           }),
           activeTab === 'outputs' && !currentSnapRedacted && div({ style: { marginBottom: '1rem' } }, [
             div({ style: styles.outputInfoLabel }, 'Output files will be saved to'),

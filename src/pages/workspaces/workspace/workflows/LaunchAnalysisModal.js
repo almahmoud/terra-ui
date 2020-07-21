@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
-import { b, div, h, wbr } from 'react-hyperscript-helpers'
-import { ButtonPrimary, CromwellVersionLink } from 'src/components/common'
+import { b, div, h, wbr, label, span } from 'react-hyperscript-helpers'
+import {ButtonPrimary, CromwellVersionLink, LabeledCheckbox, Link} from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -11,6 +11,9 @@ import * as Utils from 'src/libs/utils'
 import {
   chooseRows, chooseSetComponents, chooseSets, processAll, processAllAsSet, processMergedSet
 } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
+import {InfoBox} from "src/components/PopupTrigger";
+import {ValidatedInput} from "src/components/input";
+import {FormLabel} from "src/libs/forms";
 
 
 export default ajaxCaller(class LaunchAnalysisModal extends Component {
@@ -63,6 +66,48 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       ]),
       div({ style: { color: colors.danger(), overflowWrap: 'break-word' } }, [
         h(Fragment, wrappableOnPeriods(launchError))
+      ]),
+      div({}, [h(LabeledCheckbox, {
+        disabled: false,
+        checked: true,
+        onChange: v => this.setState({ useCallCache: v })
+      }, [' Use call caching'])]),
+      div({style: { marginTop: '0.5rem' }}, [
+        h(LabeledCheckbox, {
+          checked: true,
+          onChange: v => this.setState({ deleteIntermediateOutputFiles: v }),
+          style: { margin: '0 0 0 0' }
+        }, [' Delete intermediate outputs']),
+      h(InfoBox, [
+        'If the workflow succeeds, only the final output will be saved. Subsequently, call caching cannot be used as the intermediate steps will be not available. ',
+        h(Link, {
+          href: 'https://support.terra.bio/hc/en-us/articles/360039681632',
+          ...Utils.newTabLinkProps
+        }, ['Click here to learn more.'])
+      ])]),
+      div({style: { marginTop: '0.5rem' }}, [
+        h(LabeledCheckbox, {
+          disabled: false,
+          checked: true,
+          onChange: v => this.setState({ useCallCache: v })
+        }, [' Retry with more memory']),
+        h(InfoBox, [
+          'If the workflow succeeds, only the final output will be saved. Subsequently, call caching cannot be used as the intermediate steps will be not available. ',
+          h(Link, {
+            href: 'https://support.terra.bio/hc/en-us/articles/360039681632',
+            ...Utils.newTabLinkProps
+          }, ['Click here to learn more.'])
+        ])
+      ]),
+      div({style: {marginTop: '0.5rem'}}, [
+        h(FormLabel, ['Memory mulitplier:']),
+        h(ValidatedInput, {
+          inputProps: {
+            value: '1.1',
+            onChange: v => this.assignValue(key, v),
+            placeholder: '1.1'
+          },
+        })
       ])
     ])
   }
